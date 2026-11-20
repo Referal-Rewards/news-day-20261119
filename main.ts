@@ -1,4 +1,5 @@
-import { copyFileSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { copyFileSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 function outputPath(): string {
@@ -42,6 +43,41 @@ function requireSourceFile(path: string): void {
   }
 }
 
+const MAX_ENTRY_PNG_BYTES = 1048576;
+
+/**
+ * Verify the entry PNG before copying: enforce the size limit
+ * (<= 1048576 bytes) and compute its sha256 digest.
+ *
+ * Dimensions: not checked here (no image library is used); the expected
+ * dimensions must be verified manually when the PNG is produced.
+ *
+ * Returns the hex sha256 digest of the file.
+ */
+function verifyEntryPng(path: string): string {
+  let size: number;
+  try {
+    size = statSync(path).size;
+  } catch (err) {
+    failErr(`stat entry png ${path}`, err);
+  }
+  if (size > MAX_ENTRY_PNG_BYTES) {
+    fail(
+      'EFBIG',
+      `verify entry png ${path}`,
+      `${size} bytes, limit ${MAX_ENTRY_PNG_BYTES}`,
+    );
+  }
+
+  let data: Buffer;
+  try {
+    data = readFileSync(path);
+  } catch (err) {
+    failErr(`read entry png ${path}`, err);
+  }
+  return createHash('sha256').update(data).digest('hex');
+}
+
 function copyDeterministic(src: string, dest: string): void {
   let srcSize: number;
   try {
@@ -79,6 +115,7 @@ function main(): void {
   const src = sourcePath();
   const dest = outputPath();
   requireSourceFile(src);
+  verifyEntryPng(src);
   copyDeterministic(src, dest);
 }
 
