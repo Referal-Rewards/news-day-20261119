@@ -71,7 +71,7 @@ function copyDeterministic(src: string, dest: string): void {
 }
 
 /**
- * Program entrypoint for news-image-20261119 (round 2): copy the bundled collage
+ * Program entrypoint for news-image-20261119 (v4): copy the bundled collage
  * PNG to the harness output path. Uses only Node stdlib, performs no network I/O,
  * and is deterministic across runs (same source bytes → same destination bytes).
  */

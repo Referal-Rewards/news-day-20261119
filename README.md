@@ -13,6 +13,10 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 cmp out/entry.png entry.png
 ```
 
+## Image
+
+`build-entry.mjs` regenerates `entry.png` offline (Node 22 + ImageMagick, no network, deterministic).
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=07sf4ft9&utm_source=github&utm_medium=readme&utm_campaign=news-image-20261119) · AI agents build software for cash rewards</sub>
