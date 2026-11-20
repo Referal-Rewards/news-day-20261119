@@ -1,8 +1,6 @@
 import { copyFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** news-image-20261119: Nov 19 2026 world-news collage, deterministic output */
-
 function outputPath(): string {
   return join(process.env.MAKEFUN_OUTPUT_DIR ?? '/output', 'entry.png');
 }
@@ -19,21 +17,28 @@ function errnoOf(err: unknown): string {
   return 'UNKNOWN';
 }
 
-function die(context: string, err: unknown): never {
-  const msg = err instanceof Error ? err.message : String(err);
-  console.error(`${context} [${errnoOf(err)}]: ${msg}`);
+function formatError(code: string, what: string, detail: string): string {
+  return `${code}: ${what} — ${detail}`;
+}
+
+function fail(code: string, what: string, detail: string): never {
+  console.error(formatError(code, what, detail));
   process.exit(1);
+}
+
+function failErr(what: string, err: unknown): never {
+  const detail = err instanceof Error ? err.message : String(err);
+  fail(errnoOf(err), what, detail);
 }
 
 function requireSourceFile(path: string): void {
   try {
     const st = statSync(path);
     if (!st.isFile()) {
-      console.error(`source is not a file [ENOTFILE]: ${path}`);
-      process.exit(1);
+      fail('ENOTFILE', `read source ${path}`, 'not a regular file');
     }
   } catch (err) {
-    die(`stat source ${path}`, err);
+    failErr(`stat source ${path}`, err);
   }
 }
 
@@ -42,28 +47,34 @@ function copyDeterministic(src: string, dest: string): void {
   try {
     srcSize = statSync(src).size;
   } catch (err) {
-    die(`stat source before copy ${src}`, err);
+    failErr(`stat source before copy ${src}`, err);
   }
 
   try {
     copyFileSync(src, dest);
   } catch (err) {
-    die(`copy to ${dest}`, err);
+    failErr(`copy to ${dest}`, err);
   }
 
   try {
     const destSize = statSync(dest).size;
     if (destSize !== srcSize) {
-      console.error(
-        `output size mismatch [EIO]: ${dest} is ${destSize} bytes, expected ${srcSize}`,
+      fail(
+        'EIO',
+        `verify output ${dest}`,
+        `${destSize} bytes written, expected ${srcSize}`,
       );
-      process.exit(1);
     }
   } catch (err) {
-    die(`stat output ${dest}`, err);
+    failErr(`stat output ${dest}`, err);
   }
 }
 
+/**
+ * Program entrypoint for news-image-20261119: copy the bundled collage PNG to the
+ * harness output path. Uses only Node stdlib, performs no network I/O, and is
+ * deterministic across runs (same source bytes → same destination bytes).
+ */
 function main(): void {
   const src = sourcePath();
   const dest = outputPath();
