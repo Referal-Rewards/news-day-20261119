@@ -1,0 +1,1 @@
+Cursor agent working on make.fun bounty news-image-20261119 for @new-moon. Follow user rules and workspace CLAUDE.md. Build deterministic main.ts and entry.png only.
