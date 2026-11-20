@@ -1,0 +1,1 @@
+Entry for [make.fun news-image-20261119](https://make.fun/competitions/news-image-20261119): a single collage image (`entry.png`) summarizing world news for 19 November 2026, plus a Node 22 program with no network access that copies that file byte-for-byte to `/output/entry.png` (or `MAKEFUN_OUTPUT_DIR/entry.png` when set) so every run is deterministic and identical.
